@@ -146,22 +146,52 @@ soc-triage-portfolio/
 
 Each incident report will use a unique ticket ID. The example filenames illustrate the intended naming convention and do not imply that these tickets have already been completed.
 
-## Alert Tracker
+## Master Alert Tracker
 
-The tracker will maintain a record of every investigation.
+This table is the central index for all SOC alert investigations conducted during the October 15-31, 2026 sprint. Each ticket ID links to its detailed investigation report.
 
-| Field | Description |
-|---|---|
-| Ticket ID | Unique incident reference |
-| Investigation date | Date of analysis |
-| Alert name | Detection or scenario investigated |
-| Log source | Wazuh, Windows Event Logs, Sysmon, PCAP, etc. |
-| Severity | Assigned severity and supporting rationale |
-| Verdict | TP, FP, BTP, or Inconclusive |
-| MITRE ATT&CK | Relevant technique, if supported |
-| Triage time | Time from investigation start to initial verdict and ticket completion, recorded separately if needed |
-| Ticket URL | Link to the incident report |
-| Status | Closed, escalated, or pending |
+### Sprint Metrics
+
+| Metric | Target | Actual |
+|---|---:|---:|
+| Investigation period | 17 days | In progress |
+| Total tickets | 85 minimum | 0 documented |
+| Average daily volume | 5 minimum | 0 |
+| True Positives | Track actual | 0 |
+| False Positives | Track actual | 0 |
+| Benign True Positives | Track actual | 0 |
+| Inconclusive | Track actual | 0 |
+
+*Update the actual figures only when corresponding tickets have been documented and reviewed.*
+
+### Incident Index
+
+| Ticket ID | Alert / Scenario | Source Platform | Log Sources Analyzed | MITRE ATT&CK | Verdict | Write-Up |
+|---|---|---|---|---|---|---|
+| INC-001 | To be investigated | Wazuh | To be confirmed | TBD | Pending | [View Report](incidents/INC-001.md) |
+| INC-002 | To be investigated | Wazuh / Windows | To be confirmed | TBD | Pending | [View Report](incidents/INC-002.md) |
+| INC-003 | To be investigated | Windows Event Logs | To be confirmed | TBD | Pending | [View Report](incidents/INC-003.md) |
+| INC-004 | To be investigated | To be confirmed | To be confirmed | TBD | Pending | [View Report](incidents/INC-004.md) |
+| INC-005 | To be investigated | To be confirmed | To be confirmed | TBD | Pending | [View Report](incidents/INC-005.md) |
+
+*The rows above are placeholders for the first five investigations. Replace the scenario, platform, log sources, technique, and verdict with verified findings. Add one row for every subsequent ticket.*
+
+### Verdict Definitions
+
+- **True Positive (TP):** The detection correctly identified activity meeting the malicious or suspicious detection criteria.
+- **False Positive (FP):** The detection incorrectly classified benign activity as suspicious.
+- **Benign True Positive (BTP):** The detection correctly identified the activity, but the activity was legitimate.
+- **Inconclusive:** Available evidence does not support a reliable final classification.
+- **Pending:** Investigation or documentation has not been completed.
+
+### Navigation
+
+- [Incident Reports](incidents/)
+- [Alert Tracker CSV](tracker/alert-tracker.csv)
+- [SIEM Queries and Investigation Notes](queries/)
+- [October Sprint Summary](reports/october-2026-summary.md)
+
+All report links use relative GitHub paths so readers can navigate directly to the Markdown files in this repository.
 
 ## Metrics and Quality Standards
 
