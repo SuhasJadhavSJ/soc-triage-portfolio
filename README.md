@@ -168,7 +168,7 @@ This table is the central index for all SOC alert investigations conducted durin
 
 | Ticket ID | Alert / Scenario | Source Platform | Log Sources Analyzed | MITRE ATT&CK | Verdict | Write-Up |
 |---|---|---|---|---|---|---|
-| INC-001 | To be investigated | Wazuh | To be confirmed | TBD | Pending | [View Report](incidents/INC-001.md) |
+| INC-001 | Multiple authentication failures followed by a success | Wazuh |  | T1110; T1078 | True Positive (Confirmed Account Takeover)  | [View Report](incidents/INC-001.md) |
 | INC-002 | To be investigated | Wazuh / Windows | To be confirmed | TBD | Pending | [View Report](incidents/INC-002.md) |
 | INC-003 | To be investigated | Windows Event Logs | To be confirmed | TBD | Pending | [View Report](incidents/INC-003.md) |
 | INC-004 | To be investigated | To be confirmed | To be confirmed | TBD | Pending | [View Report](incidents/INC-004.md) |
