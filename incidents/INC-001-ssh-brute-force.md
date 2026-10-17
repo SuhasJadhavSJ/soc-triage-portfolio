@@ -1,4 +1,4 @@
-# Incident Report: INC-001 — SSH Brute-Force & Compromise of 'ubuntu' Account
+# Incident Report: INC-001 - SSH Brute-Force & Compromise of 'ubuntu' Account
 
 - **Date/Time:** Oct 15, 2026, 16:04:03 IST (10:34:03 UTC)
 - **Monitoring Tool:** Wazuh SIEM
@@ -46,5 +46,5 @@ I logged into the server console to verify whether the session was still active 
 
 1. **Terminated the Attacker's Session:**
    Killed all active processes and shells under the user account:
-   
+
    sudo pkill -KILL -u ubuntu
