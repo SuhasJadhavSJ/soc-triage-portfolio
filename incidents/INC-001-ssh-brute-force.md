@@ -1,59 +1,50 @@
-# Incident Report : INC-001 Brute Force Attack
+# Incident Report: INC-001 — SSH Brute-Force & Compromise of 'ubuntu' Account
 
-**Date/Time:** 2026-10-15T10:34:03.799Z (16:04:03 IST)
-**SIEM / Engine:** Wazuh (Alert Level: 12)
-**Rule ID:** `40112` — *Multiple authentication failures followed by a success*
-**Target Host:** `SOC-Ubuntu-Server` (Agent ID: `001` | IP: `192.168.56.10`)
-**Account:** `ubuntu`
-**Source IP / Port:** `192.168.56.1` : `55884`
-**MITRE ATT&CK Mapping:** T1110 (Brute Force / Password Guessing), T1078 (Valid Accounts)
+- **Date/Time:** Oct 15, 2026, 16:04:03 IST (10:34:03 UTC)
+- **Monitoring Tool:** Wazuh SIEM
+- **Alert:** Rule 40112 (Multiple authentication failures followed by a success)[cite: 1]
+- **Target System:** SOC-Ubuntu-Server (192.168.56.10)[cite: 1]
+- **Target User:** ubuntu[cite: 1]
+- **Attacking IP:** 192.168.56.1 (Port 55884)[cite: 1]
+- **MITRE Tactics:** T1110 (Brute Force), T1078 (Valid Accounts)
 
-## 1. Executive Summary
-At 10:34:03 UTC, a High Severity (Level 12) rule triggered on host `SOC-Ubuntu-Server` after consecutive SSH authentication failures culminated in a successful password-based login for accoint `ubuntu` originating from intern host `192.168.56.1`. Preliminary log inspection indicated potential brute-force compromise of a default system account. Active session verification and source host quarantine are initiated.
+---
 
-## 2. Multi-Stage Log Correlation & Attack Chain
+### Incident Summary
+A high-severity alert triggered on `SOC-Ubuntu-Server` after dozens of failed SSH password attempts ended in a successful login for the `ubuntu` user from IP `192.168.56.1`[cite: 1]. The short timeframe between the failed attempts and the logon points directly to an automated dictionary attack that guessed the account password. I confirmed an active interactive shell on the server, terminated the session, and locked password authentication on the service.
 
-Correlating the 83 events across `wazuh-alerts-4.x` reconstructs the complete attack timeline[cite: 1]:
+---
 
-| Phase | Timestamp (IST) | Rule ID & Level | Event Signature & Log Details | Analysis / MITRE Mapping |
-| :--- | :--- | :--- | :--- | :--- |
-| **1. Rapid Probing** | `16:03:43` – `16:03:45`[cite: 4] | `5503` (L5), `5760` (L5)[cite: 4] | `PAM: User login failed` / `sshd: authentication failed`[cite: 4] | High-velocity dictionary spray against port 22[cite: 4]. |
-| **2. Aggregation** | `16:03:45.813`[cite: 4] | `5763` (L10)[cite: 4] | `sshd: brute force trying to get access to the system`[cite: 4] | Wazuh correlation detects threshold exceedance[cite: 4]. |
-| **3. Continued Guessing** | `16:03:49` – `16:03:55`[cite: 1, 2, 3] | `2502` (L10), `40111` (L10)[cite: 1, 2] | `syslog: User missed the password more than one time`[cite: 1, 2] | Multiple failed attempts in short duration (T1110)[cite: 1, 2]. |
-| **4. Credential Match** | `16:04:03.799`[cite: 1] | **`40112` (L12)**[cite: 1] | `Accepted password for ubuntu from 192.168.56.1 port 55884 ssh2`[cite: 1] | Valid credentials guessed; composite rule triggered[cite: 1]. |
-| **5. Session Spawn** | `16:04:03.800`[cite: 1] | `5501` (L3)[cite: 1] | `PAM: Login session opened.`[cite: 1] | Interactive shell established 1ms post-auth (T1078)[cite: 1]. |
+### Log Analysis & Timeline
+Reviewing the 83 alerts around 16:03–16:04 IST shows a clear sequence of events[cite: 1]:
 
-## 3. Host-Level Forensic Verification
+- **16:03:43 – 16:03:45:** The host logged rapid SSH/PAM authentication failures within milliseconds (Rules 5503, 5760), typical of an automated tool cycling credentials[cite: 4].
+- **16:03:45:** Wazuh flagged Rule 5763 after hitting the threshold for an SSH brute-force attack[cite: 4].
+- **16:03:49 – 16:03:55:** Failed logon events continued piling up under Rule 2502 and Rule 40111[cite: 1, 2, 3].
+- **16:04:03 (Point of Breach):** SSH accepted the password for user `ubuntu` from `192.168.56.1` (Rule 40112)[cite: 1].
+- **16:04:03 (+1ms):** PAM opened an interactive session (Rule 5501)[cite: 1].
 
-Investigation executed directly on `SOC-Ubuntu-Server` (`192.168.56.10`) yielded the following operational findings:
+---
 
-1. **Active Terminal Sessions (`who -u`):**
-   * Identified active session: `ubuntu  pts/0  2026-10-15 16:04 (192.168.56.1)`.
-2. **Audit & Command Inspection:**
-   * Checked `/var/log/auth.log` and user history (`~/.bash_history`) to monitor for unauthorized execution (`sudo`, reconnaissance scripts, persistence tools).
+### Host Investigation
+I logged into the server console to verify whether the session was still active and check for unauthorized commands:
 
+1. **Active Sessions (`who -u`):**
+   Confirmed user `ubuntu` was connected via `pts/0` from `192.168.56.1`.
+2. **Activity Inspection:**
+   Reviewed `/var/log/auth.log` and checked the shell history (`~/.bash_history`) to see if any reconnaissance commands, privilege escalation attempts, or downloads had taken place before intervention.
 
-## 4. Verdict & Impact Assessment
+---
 
-* **Final Verdict:** **True Positive (Confirmed Account Takeover)**
-* **Impact Analysis:** An attacker successfully obtained valid credentials for the primary user `ubuntu` via high-frequency automated guessing[cite: 1, 4]. Since the `ubuntu` account possesses default sudo privileges on Ubuntu installations, full host compromise and privilege escalation are likely if left uncontained.
+### Triage Verdict
+- **Verdict:** True Positive (Unauthorized Access / Compromised Account)
+- **Assessment:** The attacker successfully cracked the credentials for `ubuntu`[cite: 1]. Because `ubuntu` has sudo rights on this machine, immediate containment was necessary to prevent lateral movement or persistence.
 
-## 5. Containment & Remediation Actions Taken
+---
 
-1. **Active Session Severance:**
-   * Terminated rogue interactive sessions on `SOC-Ubuntu-Server`:
-     sudo pkill -KILL -u ubuntu
+### Actions Taken & Remediation
 
-2. **Account Restriction:**
-   * Locked user password to prevent persistent logon:
-     sudo passwd -l ubuntu
-
-3. **Hardening & Service Defense:**
-   * Disabled SSH password authentication in `/etc/ssh/sshd_config`:
-     PasswordAuthentication no
-     PermitRootLogin no
-     PubkeyAuthentication yes
-
-   * Applied configuration: `sudo systemctl restart sshd`.
-4. **Detection Engineering / Active Response:**
-   * Configured Wazuh Active Response on the manager to execute `firewall-drop` / `iptables` for 3600 seconds on any source IP triggering Rule `5763` or `40112`[cite: 1, 4].
+1. **Terminated the Attacker's Session:**
+   Killed all active processes and shells under the user account:
+   
+   sudo pkill -KILL -u ubuntu
